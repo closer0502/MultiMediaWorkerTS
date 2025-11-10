@@ -1,0 +1,55 @@
+{
+  "name": "multimedia-worker",
+  "version": "1.0.0",
+  "description": "OpenAI APIを使用したマルチメディアコマンド生成ツール",
+  "type": "module",
+  "main": "dist/backend/server.js",
+  "scripts": {
+    "dev": "npm run dev:client",
+    "dev:server": "tsx backend/src/server.ts",
+    "dev:client": "vite --config frontend/vite.config.ts",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsup backend/src/server.ts --format esm --splitting false --target node18 --out-dir dist/backend",
+    "build:client": "vite build --config frontend/vite.config.ts",
+    "preview:client": "vite preview --config frontend/vite.config.ts",
+    "typecheck": "tsc -b",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "tsx backend/tests/agent.test.ts",
+    "test:frontend": "vitest --run --config frontend/vite.config.ts"
+  },
+  "keywords": [
+    "openai",
+    "ffmpeg",
+    "imagemagick",
+    "exiftool"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.19.2",
+    "multer": "^2.0.0",
+    "openai": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^22.7.4",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.7.1",
+    "jsdom": "^27.0.1",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vitest": "^4.0.2"
+  }
+}

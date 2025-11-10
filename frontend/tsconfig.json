@@ -1,0 +1,23 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "composite": true,
+    "noEmit": true,
+    "types": [
+      "vite/client",
+      "vitest/globals"
+    ],
+    "baseUrl": "./src"
+  },
+  "include": [
+    "src",
+    "tests",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}
