@@ -76,6 +76,30 @@ function resolveNodeBinary() {
   return 'node';
 }
 
+function wireBackendLogs(child, label) {
+  const formatLine = (chunk) =>
+    chunk
+      .toString()
+      .split(/\r?\n/)
+      .filter((line) => line.length > 0)
+      .map((line) => `[${label}] ${line}`);
+
+  if (child.stdout) {
+    child.stdout.on('data', (chunk) => {
+      for (const line of formatLine(chunk)) {
+        console.log(line);
+      }
+    });
+  }
+  if (child.stderr) {
+    child.stderr.on('data', (chunk) => {
+      for (const line of formatLine(chunk)) {
+        console.error(line);
+      }
+    });
+  }
+}
+
 async function startBackendServer() {
   const serverUrl = `http://localhost:${backendPort}/api/tools`;
   if (await isBackendAlive(serverUrl)) {
@@ -91,9 +115,11 @@ async function startBackendServer() {
     backendProcess = spawn(nodeBinary, [tsxCli, serverEntry], {
       cwd: projectRoot,
       env,
-      stdio: 'inherit',
-      shell: false
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell: false,
+      windowsHide: true
     });
+    wireBackendLogs(backendProcess, 'backend');
     backendProcess.on('exit', (code) => {
       if (isShuttingDown) {
         return;
