@@ -23,7 +23,7 @@ export async function getCommandSuggestion(client: OpenAI, userQuery: string) {
         content: [
           {
             type: 'input_text',
-            text: '#あなた�Eユーザーの求める問題を解決する最適なターミナルコマンドを返答をします、En#あなたが使えるコマンド�E以下�Eコマンドリストです、En- ffmpeg\n- magick(ImageMagick)\n- exiftool\n- yt-dlp\n- none (ユーザーの求める問題を解決する上�Eどのコマンドでも無琁E��場吁E\n\n#返答�EJSON schemaに従って返してください、E'
+            text: '#あなたはユーザーの求める問題を解決する最適なターミナルコマンドを返答します。\n#あなたが使えるコマンドは以下のコマンドリストです。\nffmpeg\n- magick(ImageMagick)\n- exiftool\n- yt-dlp\n- none (ユーザーの求める問題を解決する上でどのコマンドでも無力な場合)\n\n#返答はJSON schemaに従って返してください'
           }
         ]
       },
