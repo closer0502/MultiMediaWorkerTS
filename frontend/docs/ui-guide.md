@@ -1,85 +1,74 @@
-# オプション解説
+﻿# オプション解説
 
-## 📋 ドライラン�E�コマンド実行をスキチE�E�E�E
+## 📋 ドライラン（コマンド実行をスキップ）
 
-**概要E*: コマンドを実際には実行せず、�Eランの生�Eのみを行うモードです、E
-
-### フロー
-
-1. **UI側の設宁E*
-   - `frontend/src/App.tsx:245` のチェチE��ボックスで `dryRun` フラグを有効匁E
-   - `/api/tasks` にリクエストを送信
-
-2. **サーバ�E側の処琁E*
-   - `parseBoolean` ぁE`dryRun=true` を解釁E
-   - 実行フェーズに渡す！Ebackend/src/server/MediaAgentServer.js:167`�E�E
-
-3. **エージェント�Eの動佁E*
-   - プランのみを生戁E
-   - `CommandExecutor` が実コマンドをスキチE�E処琁E
-   - 結果に **「ドライラン、E* タグとスキチE�E琁E��を記録
-   - 参�E: `backend/src/agent/execution/CommandExecutor.js:34`, `CommandExecutor.js:158`
-
----
-
-## 🐛 プラン生�EのチE��チE��惁E��を含める
-
-**概要E*: プラン生�Eプロセスの詳細惁E��を取得します、E
+**概要**: コマンドを実際には実行せず、プランの生成のみを行うモードです。
 
 ### フロー
 
-1. **UI側の設宁E*
-   - `frontend/src/App.tsx:259` のチェチE��で `debugEnabled` を有効匁E
-   - クエリに `debug=true` を付丁E
-   - 後続�E詳細オプションが利用可能に
+1. **UI 側の設定**
+   - `frontend/src/App.tsx` のチェックボックスで `dryRun` フラグを有効化。
+   - `/api/tasks` に送るリクエストへ自動的に `dryRun=true` が付与されます。
 
-2. **サーバ�E側の処琁E*
-   - `parseDebugMode` でフラグを解釁E
-     - 参�E: `backend/src/server/MediaAgentServer.js:166`, `MediaAgentServer.js:334`
-   - プランナ�Eに `debug: true` を渡ぁE
+2. **サーバー側の処理**
+   - `MediaAgentServer` (`backend/src/server/MediaAgentServer.ts`) が `parseBoolean` で `dryRun` を解釈します。
+   - 実行フェーズに渡すオプションとして `dryRun: true` が設定されます。
 
-3. **プランナ�E側の動佁E*
-   - OpenAI プランナ�Eが以下�E惁E��を付丁E
-     - 開発老E�Eロンプト
-     - パ�Eス結果
-     - そ�E他デバッグ惁E��
-   - 参�E: `backend/src/agent/planning/OpenAIPlanner.js:33`, `OpenAIPlanner.js:70`
-
-4. **UI側の表示**
-   - 「デバッグ」セクションで確認可能�E�Efrontend/src/App.tsx:416`�E�E
+3. **エージェントの動作**
+   - プランのみを生成し、`CommandExecutor` が実コマンドをスキップします。
+   - レスポンスには **「ドライラン」** タグとスキップ情報が含まれます。
 
 ---
 
-## 🔍 生レスポンスを含める�E�詳細�E�E
+## 🐛 プラン生成のデバッグ情報を含める
 
-**概要E*: LLMの生レスポンス全体を取得する詳細チE��チE��モードです、E
-
-> ⚠�E�E**注愁E*: こ�Eオプションは「デバッグ惁E��を含める」が有効な場合�Eみ使用可能です、E
+**概要**: プラン生成プロセスの詳細情報を取得します。
 
 ### フロー
 
-1. **UI側の設宁E*
-   - `frontend/src/App.tsx:271` の入れ子チェチE��ボックス
-   - チE��チE��がオンの時�Eみ有効
-   - `debugVerbose` めE`true` にすると `debug=verbose` モードに刁E��替ぁE
+1. **UI 側の設定**
+   - `App.tsx` のチェックボックスで `debugEnabled` をオン。
+   - クエリに `debug=true` を付けて `/api/tasks` に送信します。
 
-2. **サーバ�E側の処琁E*
-   - `debug=verbose` また�E `debug=full` を受け取めE
-   - `includeRaw` めE`true` に設定！Ebackend/src/server/MediaAgentServer.js:336`�E�E
-   - エージェントへ `includeRawResponse` を渡す！EMediaAgentServer.js:191`�E�E
+2. **サーバー側の処理**
+   - `parseDebugMode` でフラグを解釈し、`MediaAgentServer` が `debug: true` をプランナーへ渡します。
 
-3. **プランナ�E側の動佁E*
-   - LLMの生レスポンス全体を安�Eにシリアライズ
-   - チE��チE�� payload に同梱�E�Ebackend/src/agent/planning/OpenAIPlanner.js:38`�E�E
+3. **プランナーの動作**
+   - OpenAI プランナーが以下の情報を付与します。
+     - 開発用プロンプト
+     - パース結果
+     - その他デバッグ情報
 
-4. **UI側の表示**
-   - 「生レスポンス」ビューで JSON 全体を確認可能
-   - 参�E: `frontend/src/App.tsx:391`
+4. **UI 側の表示**
+   - 「デバッグ」セクションで確認可能（`frontend/src/App.tsx` のサイドドロワー）。
 
 ---
 
-## 💡 使ぁE��のヒンチE
+## 🔍 生レスポンスを含める（詳細モード）
 
-- **開発中**: ドライランとチE��チE��を併用すると、コマンド実行なしでプラン生�Eの問題を特定できまぁE
-- **トラブルシューチE��ング**: 生レスポンスを含めると、LLMの出力を詳細に刁E��できまぁE
-- **本番環墁E*: チE��チE��オプションは無効化し、忁E��な場合�Eみドライランを使用してください
+**概要**: LLM の生レスポンス全体を取得する詳細デバッグモードです。
+
+> ⚠️ **注意**: このオプションは「デバッグ情報を含める」が有効な場合のみ使用できます。
+
+### フロー
+
+1. **UI 側の設定**
+   - `App.tsx` の入れ子チェックボックスで `debugVerbose` をオン。
+   - クエリに `debug=verbose`（または `debug=full`）を付けます。
+
+2. **サーバー側の処理**
+   - `MediaAgentServer` が `includeRaw` を `true` に設定し、`MediaAgent` に `includeRawResponse` を渡します。
+
+3. **プランナーの動作**
+   - LLM の生レスポンス全体を安全にシリアライズし、デバッグ payload に同梱します。
+
+4. **UI 側の表示**
+   - 「生レスポンス」ビューで JSON をそのまま確認できます（`frontend/src/App.tsx`）。
+
+---
+
+## 💡 使い分けのヒント
+
+- **開発中**: ドライランとデバッグを併用すると、コマンド実行なしでプラン生成の問題を特定できます。
+- **トラブルシューティング**: 生レスポンスを含めると、LLM の出力を詳細に追跡できます。
+- **本番運用**: デバッグオプションは無効化し、必要な場合のみドライランを利用してください。

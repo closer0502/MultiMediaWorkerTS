@@ -1,79 +1,79 @@
-# フロントエンド実行�Eロセス解説
+﻿# フロントエンド実行プロセス解説
 
-こ�Eドキュメント�E `frontend/src` を中忁E��した UI 側の流れと主要コンポ�Eネントを把握するためのも�Eです。ユーザー操作からサーバ�E応答�E表示まで、どの関数がどんな役割を担ぁE��をスチE��プ形式でまとめてぁE��す、E
+このドキュメントは、`frontend/src` を中心にした UI 側の流れと主要コンポーネントを把握するためのものです。ユーザー操作からサーバー応答の表示まで、どの関数がどんな役割を担うかをステップ形式でまとめています。
 
-## 1. 全体フロー�E�スチE��プバイスチE��プ！E
+## 1. 全体フロー（ステップバイステップ）
 
-1. **エントリポイント�E初期匁E*  
+1. **エントリポイントと初期化**  
    - `main.tsx` (`frontend/src/main.tsx`)  
-   - `ReactDOM.createRoot(...).render(<App />)` によりルートコンポ�EネンチE`App` を�Eウント。`React.StrictMode` 下で開発時�E警告検知も行われる、E
+   - `ReactDOM.createRoot(...).render(<App />)` によりルートコンポーネント `App` をマウント。開発時は `React.StrictMode` で警告検知も行います。
 
-2. **初期状態�EセチE��アチE�E**  
-   - `App.tsx` (`frontend/src/App.tsx`) 冁E��の `useState` でフォームめE��歴、ツールリストなどの状態を用意、E 
+2. **初期状態のセットアップ**  
+   - `App.tsx` (`frontend/src/App.tsx`) 内の `useState` でフォーム入力、履歴、ツール一覧、デバッグ設定などの状態を用意します。
 
-3. **ユーザー入力�E収集**  
-   - タスク入力フィールドとファイル選抁E(`<input type="file" multiple />`) めE`App` が保持、E 
-   - `FilePreviewList` コンポ�Eネントで選択済みファイルを表示し、合計サイズなどを算�E、E 
-   - チE��チE��めE��ライランのフラグをトグルで設定可能、E
+3. **ユーザー入力の収集**  
+   - タスク入力フィールドとファイル選択 (`<input type="file" multiple />`) を `App` が保持。  
+   - `FilePreviewList` コンポーネントで選択済みファイルを表示し、合計サイズなどを算出します。  
+   - チェックボックスでドライランやデバッグモードを設定できます。
 
-4. **フォーム送信処琁E*  
-   - `handleSubmit` ぁE`<form onSubmit={handleSubmit}>` から呼ばれる、E 
-   - タスク斁E��選択ファイルめE`FormData` に詰め、クエリパラメータ�E�Edebug` / `dryRun` など�E�を付与しぁEURL で `/api/tasks` に POST、E 
-   - 送信時刻と選択ファイル惁E��を保持し、レスポンス征E��の間�E `isSubmitting` フラグで UI をロチE��、E
+4. **フォーム送信処理**  
+   - `handleSubmit` が `<form onSubmit={handleSubmit}>` から呼ばれます。  
+   - タスク内容と選択ファイルを `FormData` に詰め、クエリパラメータで `debug` / `dryRun` などを付与して `/api/tasks` に POST。  
+   - 送信時刻とファイル情報を保持し、レスポンス待機中は `isSubmitting` フラグで UI をロックします。
 
-5. **サーバ�E応答�E処琁E*  
-   - 応筁EJSON を解析し、�E功時は `history` スチE�Eトに新しいエントリを追加。�Eラン惁E�� (`plan` / `rawPlan`)、フェーズ履歴、生成物惁E��などをまとめて保持、E 
-   - 失敗時は `error` メチE��ージを表示しつつ履歴にも失敗エントリを追加。サーバ�E側で `debug` を返した場合�E `debugDrawer` で閲覧可能、E
+5. **サーバー応答の処理**  
+   - 応答 JSON を解析し、成功時は `history` ステートに新しいエントリを追加。プラン情報（`plan` / `rawPlan`）、フェーズ履歴、生成物のメタ情報をまとめて保持します。  
+   - 失敗時は `error` メッセージを表示しつつ履歴にも失敗エントリを追加。`debug` フラグがオンならデバッグ用ドロワーで詳細を確認できます。
 
 6. **結果表示**  
-   - メインビューでは直近�E結果めE`ResultPanel`�E�アプリ冁E��数�E�で可視化、E 
-   - `PhaseTimeline` がサーバ�Eから返されたフェーズ進行状況をタイムライン表示、E 
-   - `OutputList` が生成ファイルの一覧をテーブルで表示し、�E開パスがあれ�Eリンク化、E 
-   - 下部の `HistoryList` で過去実行�E簡易履歴を参照可能、E
+   - メインビューでは直近の結果を `ResultPanel` で表示。  
+   - `PhaseTimeline` がサーバーから返されたフェーズ進行状況をタイムライン形式で描画。  
+   - `OutputList` が生成ファイルをテーブルで表示し、公開パスがあればリンク化します。  
+   - 下部の `HistoryList` で過去実行の簡易履歴を参照できます。
 
-7. **チE��チE��惁E��の展開**  
-   - `debugEnabled` がオンのとき、サーバ�Eから返された `rawPlan` めE`responseText` / `debug` 惁E��をサイドドロワーで表示、E 
-   - `PlanView` と `RawJsonViewer`�E�Epp.tsx 冁E�EユーチE��リチE���E�が JSON を整形表示、E
+7. **デバッグ情報の展開**  
+   - `debugEnabled` がオンのときはサーバーから返された `rawPlan` や `responseText` / `debug` 情報をサイドドロワーに表示。  
+   - `PlanView` と `RawJsonViewer` (`App.tsx` 内のユーティリティ) が JSON を整形して表示します。
 
-8. **フォームのリセチE��および再実衁E*  
-   - 成功時�E `resetForm` がタスクとファイル選択をクリア。失敗時は入力を保持して再送できるようにする、E 
-   - `history` に保存されたエントリをクリチE��すると詳細を�E表示�E�EhandleSelectHistoryEntry`�E�、E
+8. **フォームのリセットおよび再実行**  
+   - 成功時は `resetForm` がタスクとファイル選択をクリア。失敗時は入力を保持して再送できるようにします。  
+   - `history` に保存されたエントリをクリックすると詳細を再表示でき、`handleSelectHistoryEntry` が現在の選択を更新します。
 
-## 2. 主なコンポ�Eネントと関数の役割
+## 2. 主なコンポーネントと関数の役割
 
 | 名称 | 位置 | 役割 |
 | --- | --- | --- |
-| `App` | `frontend/src/App.tsx` | UI 全体を統括するコンポ�Eネント。�E力フォーム、結果パネル、履歴、デバッグ表示をまとめて管琁E|
-| `FilePreviewList` | `App.tsx` 冁E| 選択されたファイルの一覧と総サイズ表示、クリア操作を提侁E|
-| `PhaseTimeline` | `App.tsx` 冁E| サーバ�Eから返ってくるフェーズ状態をタイムライン表示 |
-| `OutputList` | `App.tsx` 冁E| 生�Eファイルの有無めE�E開パスを一覧表示 |
-| `HistoryList` | `App.tsx` 冁E| 過去の実行履歴を簡易表示して再参照を可能にする |
-| `PlanView` / `RawJsonViewer` | `App.tsx` 冁E| 生�Eされた�EランめE��バッグ用の JSON を整形出劁E|
-| `main.tsx` | `frontend/src/main.tsx` | ルート要素への `App` マウント�Eみ拁E��E|
+| `App` | `frontend/src/App.tsx` | UI 全体を統括。入力フォーム、結果パネル、履歴、デバッグ表示をまとめて管理 |
+| `FilePreviewList` | `App.tsx` 内 | 選択されたファイルの一覧と総サイズ表示、クリア操作を提供 |
+| `PhaseTimeline` | `App.tsx` 内 | サーバーから返ってくるフェーズ状態をタイムライン表示 |
+| `OutputList` | `App.tsx` 内 | 生成ファイルの有無や公開パスを一覧表示 |
+| `HistoryList` | `App.tsx` 内 | 過去の実行履歴を簡易表示して再参照を可能にする |
+| `PlanView` / `RawJsonViewer` | `App.tsx` 内 | 生成されたプランやデバッグ用 JSON を整形表示 |
+| `main.tsx` | `frontend/src/main.tsx` | ルート要素への `App` マウントとグローバルスタイルの読込 |
 | `styles.css` | `frontend/src/styles.css` | UI レイアウトや状態に応じたスタイル定義 |
 
-## 3. 送信から表示までの呼び出し関係（簡易�EチE�E�E�E
+## 3. 送信から表示までの呼び出し関係（簡易シーケンス）
 
 ```
 main.tsx
  └─ <App />
-     ├─ handleSubmit(form submission)
-     ━E  ├─ fetch('/api/tasks', FormData)
-     ━E  ├─ setHistory([...])
-     ━E  └─ setError / setIsSubmitting
-     ├─ ResultPanel�E�関数冁E��ーカルコンポ�Eネント！E
-     ━E  ├─ PhaseTimeline
-     ━E  ├─ OutputList
-     ━E  └─ DebugDrawer (開発晁E
-     └─ HistoryList�E�過去結果の再表示�E�E
+     ├─ handleSubmit (form submission)
+     │  ├─ fetch('/api/tasks', FormData)
+     │  ├─ setHistory([...])
+     │  └─ setError / setIsSubmitting
+     ├─ ResultPanel（ローカルコンポーネント）
+     │  ├─ PhaseTimeline
+     │  ├─ OutputList
+     │  └─ DebugDrawer (開発時)
+     └─ HistoryList（過去結果の再表示）
 ```
 
 ## 4. 補足
 
-- `fetch` のエラーハンドリングではレスポンス本斁E�� JSON でなくてめEgraceful に処琁E��きるよう `response.json().catch(() => null)` としてぁE��す、E 
-- 履歴スチE�Eトにはユーザー入力時点のファイル惁E��も保持してぁE��ため、`dryRun` で実行しても�EチE�Eタを振り返れる構造です、E 
-- フロントエンドで使用する斁E���Eは英語が中忁E��すが、忁E��に応じて i18n 化しめE��ぁE��ぁE��ーチE��リチE��関数を�E離する余地があります、E
+- `fetch` のエラーハンドリングではレスポンス本体が JSON でなくても安全に処理できるよう `response.json().catch(() => null)` としています。
+- 履歴ステートにはユーザー入力時点のファイル情報も保持しているため、`dryRun` で実行しても後からデータを振り返ることができます。
+- フロントエンドで使用する文言は英語が中心ですが、必要に応じて i18n 化しやすいようユーティリティ関数を切り出す余地があります。
 
 ---
 
-こ�E賁E��を起点に `App.tsx` 冁E�E補助関数を辿ると、ユーザー操作からサーバ�E連携までの流れをすばめE��追ぁE��とができます、E
+この資料を起点に `App.tsx` 内の補助関数を辿ると、ユーザー操作からサーバー連携までの流れをすばやく把握できます。

@@ -1,122 +1,120 @@
-# バックエンドサーバ�EガイチE
+﻿# バックエンドサーバーガイド
 
-こ�Eガイド�E、�Eじめて MultiMediaWorker のバックエンドを触る方向けに、セチE��アチE�Eの基本手頁E��カスタマイズ時�Eポイントをまとめたも�Eです、Express ベ�Eスの API サーバ�Eと OpenAI を利用したメチE��アエージェント�E構�Eを理解し、用途に合わせて調整できるようにすることを目持E��てぁE��す、E
-
----
-
-## 1. 何が動くのぁE
-
-- `backend/src/server.js` がエントリポイントです、E 
-  - `.env.local` を読み込み、OpenAI クライアントと CLI チE�Eルを絁E��合わせた `MediaAgent` を生成、E 
-  - `MediaAgentServer`�E�Express アプリ�E�を起動し、`/api/...` のエンド�Eイントを公開します、E
-- エージェント�E **OpenAI Responses API** を使って実行用コマンドを計画し、`ffmpeg` / `magick` / `exiftool` / `yt-dlp` などの CLI を実行して結果を返します、E
+このガイドは、初めて MultiMediaWorker のバックエンドを触る方向けに、セットアップ方法や構成の基本と、カスタマイズ時のポイントをまとめたものです。Express ベースの API サーバーと OpenAI を利用したメディアエージェントの構造を理解し、用途に合わせて調整できるようにすることを目指しています。
 
 ---
 
-## 2. 利用前�E準備
+## 1. 何が動くのか
 
-1. **Node.js 18 以丁E* をインスト�Eルします、E 
-2. **CLI チE�Eル** をローカルに用意し、`PATH` で呼び出せるようにしておきます、E 
-   - 忁E��E `ffmpeg`, `magick` (ImageMagick), `exiftool`, `yt-dlp`  
-3. **環墁E��数ファイル** を作�Eします、E
+- `backend/src/server.ts` がエントリポイントです。
+  - `.env.local` を読み込み、OpenAI クライアントと CLI ツールを組み合わせた `MediaAgent` を生成します。
+  - `MediaAgentServer` が Express アプリとして起動し、`/api/...` のエンドポイントを公開します。
+- エージェントは **OpenAI Responses API** を使って実行用コマンドを計画し、`ffmpeg` / `magick` / `exiftool` / `yt-dlp` などの CLI を実行して結果を返します。
+
+---
+
+## 2. 利用前の準備
+
+1. **Node.js 18 以上** をインストールします。
+2. **CLI ツール** をローカルに用意し、`PATH` から呼び出せるようにします。
+   - 例: `ffmpeg`, `magick` (ImageMagick), `exiftool`, `yt-dlp`
+3. **環境変数ファイル** を作成します。
    ```bash
    cp .env.example .env.local
    ```
-   `.env.local` に OpenAI API キーなどを設定します、E
+   `.env.local` に OpenAI API キーなどを設定してください。
 
 ---
 
-## 3. 初回セチE��アチE�Eと起動手頁E
+## 3. 初回セットアップと起動手順
 
-1. 依存パチE��ージをインスト�Eルします、E
+1. 依存パッケージをインストールします。
    ```bash
    npm install
    ```
-2. バックエンドサーバ�Eを起動します、E
+2. バックエンドサーバーを起動します。
    ```bash
    npm run dev:server
    ```
-3. サーバ�EはチE��ォルトで `http://localhost:3001` で征E��受けます。ログに「Agent server listening...」が表示されれ�E成功です、E
-4. Web UI も併用する場合�E、別ターミナルでフロントエンドを起動します、E
+3. サーバーはデフォルトで `http://localhost:3001` で受け付けます。ログに「Agent server listening...」が表示されれば成功です。
+4. Web UI も併用する場合、別ターミナルでフロントエンドを起動します。
    ```bash
    npm run dev:client
    ```
-5. 動作確誁E ブラウザで `http://localhost:5173` を開き、タスクを送信してみてください、ELI が実行できなぁE��墁E��も、`Dry run` を有効にすれば計画のみ確認できます、E
+5. 動作確認: ブラウザで `http://localhost:5173` を開き、タスクを送信してみてください。CLI が実行できない環境でも、`Dry run` を有効にすれば計画のみ確認できます。
 
 ---
 
-## 4. API の使ぁE��
+## 4. API の使い方
 
-| メソチE�� | パス | 説昁E|
+| メソッド | パス | 説明 |
 | --- | --- | --- |
-| `GET` | `/api/tools` | 利用可能な CLI コマンド一覧を取征E|
+| `GET` | `/api/tools` | 利用可能な CLI コマンド一覧を取得 |
 | `POST` | `/api/tasks` | タスクと入力ファイルを送信してコマンド実行を依頼 |
 
-`POST /api/tasks` は `multipart/form-data` 形式です。最低限、`task` フィールドにめE��たいことを記述し、忁E��に応じて `files` を添付します。クエリパラメータで `dryRun=true` めE`debug=verbose` などを指定すると振る�EぁE��変更できます、E
+`POST /api/tasks` は `multipart/form-data` 形式です。最低限、`task` フィールドにやりたいことを記述し、必要に応じて `files` を添付します。クエリパラメータで `dryRun=true` や `debug=verbose` を指定すると振る舞いを変更できます。
 
-応答例や詳細な JSON 構造は `README.md` と `backend/docs/execution-overview.md` に記載してぁE��す、E
+応答例や詳細な JSON 構造は `README.md` と `backend/docs/execution-overview.md` に記載してあります。
 
 ---
 
-## 5. よく使ぁE��発コマンチE
+## 5. よく使う開発コマンド
 
 - `npm test`  
-  バックエンド�Eユニットテスト（�Eランナ�E周り）を実行します、E
+  バックエンドのユニットテスト（プランナー周り）を実行します。
 - `npm run dev:server` / `npm run dev:client`  
-  開発用のサーバ�E・フロントエンドをそれぞれ起動します、E
+  開発用のサーバー・フロントエンドをそれぞれ起動します。
 - `npm run build:client`  
-  フロントエンド�E本番ビルドを生�Eします、E
+  フロントエンドの本番ビルドを生成します。
 
 ---
 
-## 6. カスタマイズ方況E
+## 6. カスタマイズ方法
 
-### 6.1 CLI チE�Eルの追加・変更
+### 6.1 CLI ツールの追加・変更
 
-1. `backend/src/agent/config/constants.js` の `DEFAULT_TOOL_DEFINITIONS` に新しいチE�Eルを追加します、E
-2. 追加したコマンドが実際に実行できるよう、サーバ�Eマシンに CLI をインスト�EルぁE`PATH` に登録します、E
-3. 忁E��であれば、フロントエンド�E�E�EApp.tsx`�E��E説明文めEUI を更新します、E
+1. `backend/src/agent/config/constants.ts` の `DEFAULT_TOOL_DEFINITIONS` に新しいツールを追加します。
+2. 追加したコマンドが実際に実行できるよう、サーバーマシンに CLI をインストールし `PATH` に登録します。
+3. 必要であれば、フロントエンドの `App.tsx` などで説明文や UI を更新します。
 
-### 6.2 OpenAI のモチE��めE�Eロンプトを調整する
+### 6.2 OpenAI のモデルやプロンプトを調整する
 
-- `.env.local` の `OPENAI_MODEL` を変更すると、サーバ�E起動時に使ぁE��チE��が�Eり替わります、E
-- より詳細なプロンプト制御を行いたい場合�E `backend/src/agent/planning/PromptBuilder.js` めE`PlanValidator.js` を編雁E��ます、ESdoc を参老E��すると安�Eに変更できます、E
+- `.env.local` の `OPENAI_MODEL` を変更すると、サーバー起動時に使われるモデルが切り替わります。
+- より詳細なプロンプト制御を行いたい場合は `backend/src/agent/planning/PromptBuilder.ts` や `PlanValidator.ts` を編集します。JSDoc を参照すると安全に変更できます。
 
-### 6.3 実行タイムアウトや出力�EチE��レクトリを変えめE
+### 6.3 実行タイムアウトや出力ディレクトリを変える
 
-- タイムアウトなどの実行オプションは `createMediaAgent` 呼び出し時に持E��できます！Ebackend/src/server.js` を参照�E�。侁E
+- タイムアウトなどの実行オプションは `createMediaAgent` 呼び出し時に渡せます。`backend/src/server.ts` を参照してください。
   ```js
   const agent = createMediaAgent(openAIClient, {
     toolRegistry,
-    executorOptions: { timeoutMs: 10 * 60 * 1000 } // 10 刁E��延長
+    executorOptions: { timeoutMs: 10 * 60 * 1000 } // 10 分に延長
   });
   ```
-- 出力�EチE��レクトリを変更したぁE��合�E `server.js` 冁E�E `PUBLIC_ROOT` めE`GENERATED_ROOT` の計算を編雁E��ます、E 
-  UI からダウンロードできるようにしたぁE��合�E、合わせて `public/` 以下�E構�Eも調整してください、E
+- 出力ディレクトリを変更したい場合は `server.ts` 内の `PUBLIC_ROOT` や `GENERATED_ROOT` の計算を編集してください。UI からダウンロードできるようにするなら、`public/` 以下の構造も調整します。
 
-### 6.4 エンド�Eイントを増やぁE
+### 6.4 エンドポイントを増やす
 
-- `MediaAgentServer` (`backend/src/server/MediaAgentServer.js`) に新しいルートを追加できます。`configureRoutes` メソチE��を参老E��、`this.app.get(...)` などを追記してください、E
-- セキュリチE��めE��可を導�EしたぁE��合�E Express のミドルウェア�E�EconfigureMiddleware`�E�に処琁E��差し込むと管琁E��めE��くなります、E
+- `MediaAgentServer` (`backend/src/server/MediaAgentServer.ts`) に新しいルートを追加できます。`configureRoutes` メソッドを参照し、`this.app.get(...)` などを追記してください。
+- セキュリティや認可を導入したい場合は Express のミドルウェアを `configureMiddleware` に差し込むと管理しやすくなります。
 
 ---
 
-## 7. トラブルシューチE��ング
+## 7. トラブルシューティング
 
-| 痁E�� | 対応筁E|
+| 症状 | 対応策 |
 | --- | --- |
-| `ffmpeg` が見つからなぁE| CLI をインスト�Eルし、コマンドラインから直接 `ffmpeg -version` が実行できることを確認してください、E|
-| `OPENAI_API_KEY` が設定されてぁE��ぁE��警呁E| `.env.local` にキーを記述し、サーバ�Eを�E起動します、E|
-| Plan 生�Eで失敗すめE| `debug` オプションをオンにして `responseText` めE`rawPlan` を確認。`PlanValidator` に引っかかった場合�EエラーメチE��ージを参照し、prompt ぁEtool 定義を調整します、E|
-| 実行がタイムアウトすめE| `executorOptions.timeoutMs` を延長、また�Eコマンドが長時間かからなぁE��ぁE��数を調整します、E|
+| `ffmpeg` が見つからない | CLI をインストールし、コマンドラインから `ffmpeg -version` が実行できることを確認してください。|
+| `OPENAI_API_KEY` が設定されていない警告 | `.env.local` にキーを記述し、サーバーを再起動します。|
+| Plan 生成で失敗する | `debug` オプションをオンにして `responseText` や `rawPlan` を確認。`PlanValidator` に弾かれた場合はエラーメッセージを参照し、prompt や tool 定義を調整します。|
+| 実行がタイムアウトする | `executorOptions.timeoutMs` を延長、またはコマンドが長時間かからないよう入力を調整します。|
 
 ---
 
-## 8. 参老E��キュメンチE
+## 8. 参考ドキュメント
 
-- `backend/docs/execution-overview.md` … バックエンド�E部のフェーズ構造を時系列で確認できます、E 
-- `frontend/docs/ui-execution-overview.md` … UI からの呼び出しフローを追ぁE��ぁE��きに参�Eしてください、E 
-- `README.md` … プロジェクト�E体�EセチE��アチE�EめE��用コマンドを一覧してぁE��す、E
+- `backend/docs/execution-overview.md` … バックエンド内部のフェーズ構造を時系列で確認できます。
+- `frontend/docs/ui-execution-overview.md` … UI からの呼び出しフローを追う際に参照してください。
+- `README.md` … プロジェクト全体のセットアップや主要コマンドを一覧しています。
 
-こ�Eガイドを出発点に、忁E��な箁E��のソースコードへ飛�Eながら自刁E�E用途に合わせてカスタマイズしてみてください、E
-
+このガイドを出発点に、必要な各ファイルへ飛びながらご自身の用途に合わせてカスタマイズしてみてください。
