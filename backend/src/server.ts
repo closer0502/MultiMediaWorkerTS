@@ -1,37 +1,35 @@
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import dotenv from 'dotenv';
 
-import { createOpenAIClient, createMediaAgent, ToolRegistry } from './agent/index.js';
-import { MediaAgentServer } from './server/MediaAgentServer.js';
+import { createDefaultMediaAgentServer } from './serverApp.js';
 
 const ROOT_DIR = process.cwd();
 dotenv.config({ path: path.join(ROOT_DIR, '.env.local') });
 
 const PORT = Number(process.env.PORT || 3001);
 
-const PUBLIC_ROOT = path.join(ROOT_DIR, 'public');
-const GENERATED_ROOT = path.join(PUBLIC_ROOT, 'generated');
-const STORAGE_ROOT = path.join(ROOT_DIR, 'storage');
-const SESSION_INPUT_ROOT = path.join(STORAGE_ROOT, 'inputs');
+async function startServer() {
+  const server = createDefaultMediaAgentServer({ rootDir: ROOT_DIR });
+  await server.start(PORT);
+  return server;
+}
 
-const toolRegistry = ToolRegistry.createDefault();
-const openAIClient = createOpenAIClient();
-const agent = createMediaAgent(openAIClient, {
-  toolRegistry,
-  model: process.env.OPENAI_MODEL
-});
+function isMainEntry() {
+  const entry = process.argv[1];
+  if (!entry) {
+    return false;
+  }
+  return import.meta.url === pathToFileURL(entry).href;
+}
 
-const server = new MediaAgentServer({
-  agent,
-  toolRegistry,
-  publicRoot: PUBLIC_ROOT,
-  generatedRoot: GENERATED_ROOT,
-  storageRoot: STORAGE_ROOT,
-  sessionInputRoot: SESSION_INPUT_ROOT
-});
+if (isMainEntry()) {
+  startServer().catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('サーバーの起動に失敗しました:', error);
+    process.exit(1);
+  });
+}
 
-server.start(PORT).catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error('サーバーの起動に失敗しました:', error);
-  process.exit(1);
-});
+export { createDefaultMediaAgentServer };
+export type { CreateMediaAgentServerOptions } from './serverApp.js';

@@ -72,6 +72,17 @@ npm run build:client
 npm run preview:client
 ```
 
+## デスクトップアプリ (Electron)
+
+- `npm run dev:desktop`  
+  Vite の開発サーバーと Electron を同時に立ち上げ、デスクトップ UI からバックエンド API を呼び出します。バックエンドは Electron プロセス側で自動起動します。
+- `npm run start:desktop`  
+  `npm run build` でバックエンド/フロントエンドをビルドした後、同じ成果物を使って Electron を実行します（`ELECTRON_DEV=0` で擬似本番モード）。
+- `npm run package:desktop`  
+  `npm run build` を実行してから Electron Builder で各 OS 向けバイナリを生成します（出力は `dist/` フォルダ）。
+
+デスクトップ版では生成物やアップロードファイルを `app.getPath('userData')/worker-data/` 以下（例: Windows なら `%APPDATA%/MultiMediaWorker/worker-data`）に保存します。`.env.local` は Web 版と同じものをプロジェクトルートに配置してください。
+
 ## ワークフローの可視化とデバッグ
 
 - バックエンドは「request → plan → execute → summarize」の各フェーズを `phases` 配列として JSON で返します。フロントエンドはチェックリストとして表示し、いつ・どこで失敗したかが一目で分かります。

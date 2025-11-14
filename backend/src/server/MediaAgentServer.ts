@@ -18,6 +18,7 @@ export type MediaAgentServerOptions = {
   generatedRoot: string;
   storageRoot: string;
   sessionInputRoot: string;
+  clientDistRoot?: string;
 };
 
 type LogStreamEntry = {
@@ -44,6 +45,7 @@ export class MediaAgentServer {
   private readonly generatedRoot: string;
   private readonly storageRoot: string;
   private readonly sessionInputRoot: string;
+  private readonly clientDistRoot?: string;
   private readonly app: express.Express;
   private readonly upload: Multer;
   private readonly logStreams: Map<string, LogStreamEntry>;
@@ -59,6 +61,7 @@ export class MediaAgentServer {
     this.generatedRoot = path.resolve(options.generatedRoot);
     this.storageRoot = path.resolve(options.storageRoot);
     this.sessionInputRoot = path.resolve(options.sessionInputRoot);
+    this.clientDistRoot = options.clientDistRoot ? path.resolve(options.clientDistRoot) : undefined;
 
     this.app = express();
     this.upload = this.createUploader();
@@ -120,6 +123,9 @@ export class MediaAgentServer {
         extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'mov', 'wav', 'mp3']
       })
     );
+    if (this.clientDistRoot && existsSync(this.clientDistRoot)) {
+      this.app.use(express.static(this.clientDistRoot));
+    }
   }
 
   /**
@@ -130,6 +136,18 @@ export class MediaAgentServer {
     this.app.get('/api/tools', this.handleGetTools);
     this.app.post('/api/tasks', this.prepareSession, this.upload.array('files'), this.handleTaskRequest);
     this.app.post('/api/revisions', this.prepareSession, this.handleRevisionRequest);
+    if (this.clientDistRoot) {
+      const indexPath = path.join(this.clientDistRoot, 'index.html');
+      if (existsSync(indexPath)) {
+        this.app.get('*', (req, res, next) => {
+          if (req.path.startsWith('/api') || req.path.startsWith('/files')) {
+            next();
+            return;
+          }
+          res.sendFile(indexPath);
+        });
+      }
+    }
     this.app.use((err, req, res, next) => {
       // eslint-disable-next-line no-console
       console.error(err);
