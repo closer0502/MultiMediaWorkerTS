@@ -144,8 +144,7 @@ export function buildErrorRetryTask(originalTask, failureContext) {
     pushEntry(label, summary);
   }
 
-  const historyObject = Object.fromEntries(historyList);
-  const historyJson = JSON.stringify(historyObject, null, 2);
+  const historyBlock = formatErrorHistory(historyList);
 
   return [
     'エラー再編集リクエストです。',
@@ -154,10 +153,36 @@ export function buildErrorRetryTask(originalTask, failureContext) {
     baseTask,
     '',
     'エラー履歴:',
-    historyJson,
+    historyBlock,
     '',
     '上記の問題を解消し、正しい成果物を生成してください。必要に応じて前回の成果物ファイルやログを参照しても構いません。'
   ].join('\n');
+}
+
+/**
+ * Render failure history as a readable block without escaping quotes inside summaries.
+ * @param {Array<[string, string]>} historyList
+ * @returns {string}
+ */
+function formatErrorHistory(historyList) {
+  if (!Array.isArray(historyList) || historyList.length === 0) {
+    return '{}';
+  }
+  const lines = ['{'];
+  historyList.forEach(([label, summary], index) => {
+    const normalizedLabel = typeof label === 'string' && label ? label : `#${index + 1}`;
+    const normalizedSummary =
+      typeof summary === 'string' && summary.trim() ? summary.trim() : '(詳細なし)';
+    lines.push(`  "${normalizedLabel}": |`);
+    normalizedSummary.split(/\r?\n/).forEach((line) => {
+      lines.push(`    ${line}`);
+    });
+    if (index < historyList.length - 1) {
+      lines.push('');
+    }
+  });
+  lines.push('}');
+  return lines.join('\n');
 }
 
 /**
