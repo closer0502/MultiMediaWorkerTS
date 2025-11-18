@@ -62,8 +62,12 @@ npm run dev:client
 ## テスト & ビルド
 
 ```bash
-# バックエンドのユニットテスト
+# バックエンドとフロントエンドのテスト
 npm test
+
+個別テスト
+test:backend
+test:frontend
 
 # フロントエンドの本番ビルド出力
 npm run build:client
