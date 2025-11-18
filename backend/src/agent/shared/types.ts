@@ -27,10 +27,17 @@ export type AgentFileMetadata = {
   raw: Record<string, unknown>;
 };
 
+export type PathPlaceholder = {
+  name: string;
+  absolutePath: string;
+  description?: string;
+};
+
 export type AgentRequest = {
   task: string;
   files: AgentFile[];
   outputDir: string;
+  pathPlaceholders?: PathPlaceholder[];
 };
 
 export type CommandOutputPlan = {

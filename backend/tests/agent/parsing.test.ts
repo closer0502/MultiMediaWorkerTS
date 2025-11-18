@@ -58,23 +58,38 @@ async function testResponseParser() {
 
 async function testPromptBuilder() {
   const builder = new PromptBuilder(sharedToolRegistry);
+  const inputRoot = path.join(TMP_ROOT, 'inputs');
+  const outputRoot = path.join(TMP_ROOT, 'outputs');
   const request = {
     task: 'Transcode the clip and extract thumbnail.',
     files: [
       {
         id: 'file-1',
         originalName: 'clip.mp4',
-        absolutePath: path.join(TMP_ROOT, 'clip.mp4'),
+        absolutePath: path.join(inputRoot, 'clip.mp4'),
         size: 1024,
         mimeType: 'video/mp4'
       }
     ],
-    outputDir: path.join(TMP_ROOT, 'outputs')
+    outputDir: outputRoot,
+    pathPlaceholders: [
+      {
+        name: 'INPUT_DIR',
+        absolutePath: inputRoot,
+        description: 'Session uploads.'
+      },
+      {
+        name: 'OUTPUT_DIR',
+        absolutePath: outputRoot,
+        description: 'Session outputs.'
+      }
+    ]
   };
 
   const prompt = await builder.build(request);
   assert.ok(prompt.includes('multimedia conversion'), 'Prompt should introduce assistant role.');
   assert.ok(prompt.includes('clip.mp4'), 'Prompt should list uploaded file names.');
-  assert.ok(prompt.includes(request.outputDir), 'Prompt should mention output directory.');
+  assert.ok(prompt.includes('${OUTPUT_DIR}'), 'Prompt should mention output directory placeholder.');
+  assert.ok(!prompt.includes(request.outputDir), 'Prompt should hide absolute output directory.');
   assert.ok(prompt.includes('steps property'), 'Prompt should instruct about steps.');
 }

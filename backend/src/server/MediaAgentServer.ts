@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import type { Server } from 'node:http';
 
 import { MediaAgentTaskError } from '../agent/index.js';
-import type { MediaAgent, ToolRegistry } from '../agent/index.js';
+import type { MediaAgent, PathPlaceholder, ToolRegistry } from '../agent/index.js';
 
 type AgentRunner = Pick<MediaAgent, 'runTask'>;
 
@@ -200,6 +200,31 @@ export class MediaAgentServer {
     }
   }
 
+  buildPathPlaceholders(session: AgentSession): PathPlaceholder[] {
+    return [
+      {
+        name: 'INPUT_DIR',
+        absolutePath: session.inputDir,
+        description: 'Read-only uploaded files for this session.'
+      },
+      {
+        name: 'OUTPUT_DIR',
+        absolutePath: session.outputDir,
+        description: 'Write new files here for this session.'
+      },
+      {
+        name: 'PUBLIC_DIR',
+        absolutePath: this.publicRoot,
+        description: 'Static public root (read-only).'
+      },
+      {
+        name: 'STORAGE_DIR',
+        absolutePath: this.storageRoot,
+        description: 'Shared storage root for uploads and intermediates.'
+      }
+    ];
+  }
+
   /**
    * タスクリクエストを処理し、エージェントを実行してレスポンスを返す
    * @param {ExpressRequest} req リクエスト
@@ -250,10 +275,13 @@ export class MediaAgentServer {
         }))
       : [];
 
+    const pathPlaceholders = this.buildPathPlaceholders(session);
+
     const agentRequest = {
       task,
       files,
-      outputDir: session.outputDir
+      outputDir: session.outputDir,
+      pathPlaceholders
     };
 
     const requestPhase = createRequestPhase(task, files, { dryRun, debug: debugMode.enabled });
@@ -436,10 +464,13 @@ export class MediaAgentServer {
     const revisionFiles = await this.prepareRevisionFiles(baseRecord);
     const revisionTask = this.composeRevisionTask(originalTask, complaint, historyRecords);
 
+    const pathPlaceholders = this.buildPathPlaceholders(session);
+
     const agentRequest = {
       task: revisionTask,
       files: revisionFiles,
-      outputDir: session.outputDir
+      outputDir: session.outputDir,
+      pathPlaceholders
     };
 
     const requestPhase = createRequestPhase(revisionTask, revisionFiles, { dryRun, debug: debugMode.enabled });

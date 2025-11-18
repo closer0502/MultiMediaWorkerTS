@@ -4,7 +4,8 @@ import { PromptBuilder } from './PromptBuilder.js';
 import { PlanValidator } from './PlanValidator.js';
 import { ResponseParser } from './ResponseParser.js';
 import type { ToolRegistry } from '../registry/ToolRegistry.js';
-import type { AgentRequest, CommandPlan } from '../shared/types.js';
+import type { AgentRequest, CommandPlan, PathPlaceholder } from '../shared/types.js';
+import { expandPlaceholdersInText } from '../shared/PathPlaceholders.js';
 
 type PlannerOptions = {
   model?: string;
@@ -89,6 +90,7 @@ export class OpenAIPlanner {
     }
 
     const normalized = this.normalizePlanStructure(parsed);
+    const resolvedPlan = this.applyPathPlaceholders(normalized, request.pathPlaceholders);
 
     const debug = options.debug
       ? {
@@ -102,7 +104,7 @@ export class OpenAIPlanner {
       : undefined;
 
     try {
-      const plan = this.planValidator.validate(normalized, request.outputDir);
+      const plan = this.planValidator.validate(resolvedPlan, request.outputDir);
       return { plan, rawPlan: normalized, debug };
     } catch (error: any) {
       if (error && typeof error === 'object') {
@@ -115,6 +117,27 @@ export class OpenAIPlanner {
       }
       throw error;
     }
+  }
+
+  private applyPathPlaceholders(plan: CommandPlan, placeholders?: PathPlaceholder[]): CommandPlan {
+    if (!placeholders || !placeholders.length) {
+      return plan;
+    }
+    return {
+      ...plan,
+      steps: plan.steps.map((step) => ({
+        ...step,
+        arguments: Array.isArray(step.arguments)
+          ? step.arguments.map((arg) => expandPlaceholdersInText(arg, placeholders))
+          : [],
+        outputs: Array.isArray(step.outputs)
+          ? step.outputs.map((output) => ({
+              ...output,
+              path: expandPlaceholdersInText(output.path, placeholders)
+            }))
+          : []
+      }))
+    };
   }
 
   buildResponseFormat(): OpenAI.Responses.ResponseFormatTextJSONSchemaConfig {
