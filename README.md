@@ -1,4 +1,4 @@
-# MultiMediaWorker
+﻿# MultiMediaWorker
 
 MultiMediaWorker は、自然言語の指示を ffmpeg / ImageMagick / ExifTool / yt-dlp などの CLI コマンド列に変換し、進捗と生成物を Web + Electron UI で可視化するツールです。バックエンドのエージェントが request -> plan -> execute -> summarize の全フェーズを担当し、フロントエンドが進捗・履歴・出力を表示します。
 
@@ -67,14 +67,14 @@ storage/                 # 一時ファイル (Git 管理外)
 - バックエンド + フロントエンドの一括ビルド: `npm run build`
 
 ## デバッグ / プレビュー用ユーティリティ
-### 進捗モーダル単体プレビュー
+### 進捗モーダルを単体で起動できるプレビュー
 1. `npm run dev:client` を起動。
 2. `http://localhost:5173/?progressPreview=1` にアクセス。
 3. 以下のクエリで表示を調整できます。
    - `stage`: `0` ~ `PROGRESS_STEPS.length - 1`
    - `logs`: `step1|step2|...` のようなパイプ区切り文字列
 
-### ErrorRetryTestScreen の表示方法
+### "エラーから再編集"した場合の送信プロンプトの組み立てを確認できるプレビュー
 開発モード (`import.meta.env.DEV` が true) のみ有効です。
 1. `npm run dev:client` を実行し、`http://localhost:5173/?error-retry-test` を開きます。
 2. もしくは `npm run dev:desktop` で Electron を起動し、DevTools で `window.location.href = window.location.origin + '/?error-retry-test'` を実行して画面を切り替えます。
