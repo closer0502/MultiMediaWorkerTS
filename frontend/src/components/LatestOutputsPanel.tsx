@@ -45,13 +45,15 @@ export default function LatestOutputsPanel({
         <p className="note">{messages.empty}</p>
       )}
       <div className="complaint-section">
-        <h3>{messages.complaintSectionTitle}</h3>
-        <p className="complaint-hint">{helperMessage}</p>
+        <div className="complaint-heading">
+          <h3>{messages.complaintSectionTitle}</h3>
+          <p className="complaint-hint">{helperMessage}</p>
+        </div>
         <textarea
           value={complaintText}
           onChange={(event) => onComplaintChange(event.target.value)}
           placeholder={messages.complaintPlaceholder}
-          rows={4}
+          rows={2}
           disabled={isSubmittingComplaint || isSubmitting || !canSubmitRevision}
         />
         <div className="complaint-actions">

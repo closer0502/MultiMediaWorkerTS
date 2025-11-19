@@ -53,7 +53,7 @@ export default function TaskForm({
             value={task}
             placeholder={messages.placeholder}
             onChange={handleTaskChange}
-            rows={5}
+            rows={2}
             disabled={isSubmitting}
           />
         </label>
