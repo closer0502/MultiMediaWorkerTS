@@ -1,5 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import TaskForm from '../components/TaskForm/TaskForm';
+import { useCallback, useMemo, useState } from 'react';
 import LatestOutputsPanel from '../components/LatestOutputsPanel';
 import { buildErrorRetryTask, summarizeFailureContext } from '../hooks/useTaskWorkflow';
 import { MESSAGES } from '../i18n/messages';
@@ -21,7 +20,6 @@ const RESPONSE_TEXT_DEFAULT = [
  * 開発用: エラー再編集プロンプトの生成結果を視覚的に確認するためのテスト画面。
  */
 export default function ErrorRetryTestScreen() {
-  const fileInputRef = useRef(null);
 
   const [originalTask, setOriginalTask] = useState(ORIGINAL_TASK_DEFAULT);
   const [failureDetail, setFailureDetail] = useState(FAILURE_DETAIL_DEFAULT);
@@ -33,10 +31,6 @@ export default function ErrorRetryTestScreen() {
   const [showErrorBanner, setShowErrorBanner] = useState(true);
   const [latestPrompt, setLatestPrompt] = useState('');
 
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [showDebugOptions, setShowDebugOptions] = useState(false);
-  const [debugEnabled, setDebugEnabled] = useState(false);
-  const [dryRun, setDryRun] = useState(false);
   const [failureIteration, setFailureIteration] = useState(1);
   const [historyEntries, setHistoryEntries] = useState([]);
 
@@ -125,32 +119,8 @@ export default function ErrorRetryTestScreen() {
     setTaskValue(ORIGINAL_TASK_DEFAULT);
     setLatestPrompt('');
     setShowErrorBanner(true);
-    setSelectedFiles([]);
     setFailureIteration(1);
     setHistoryEntries([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleTaskChange = (value) => {
-    setTaskValue(value);
-  };
-
-  const handleFilesSelected = (files) => {
-    setSelectedFiles(files);
-  };
-
-  const handleClearFiles = () => {
-    setSelectedFiles([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleSubmitTaskForm = (event) => {
-    event.preventDefault();
-    simulateSubmission();
   };
 
   return (
@@ -229,25 +199,6 @@ export default function ErrorRetryTestScreen() {
         </div>
 
         <div className="task-progress-layout">
-          <TaskForm
-            task={taskValue}
-            onTaskChange={handleTaskChange}
-            isSubmitting={false}
-            fileInputRef={fileInputRef}
-            onSubmit={handleSubmitTaskForm}
-            selectedFiles={selectedFiles}
-            onFilesSelected={handleFilesSelected}
-            onClearFiles={handleClearFiles}
-            showDebugOptions={showDebugOptions}
-            onToggleDebugOptions={setShowDebugOptions}
-            dryRun={dryRun}
-            onDryRunChange={setDryRun}
-            debugEnabled={debugEnabled}
-            onDebugChange={setDebugEnabled}
-            onReset={handleResetScenario}
-            error=""
-          />
-
           <LatestOutputsPanel
             isSubmitting={false}
             outputs={[]}
