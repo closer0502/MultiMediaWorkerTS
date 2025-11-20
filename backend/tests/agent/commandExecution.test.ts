@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   CommandExecutor,
   MediaAgentTaskError,
+  MediaAgent,
   PlanValidator,
   ToolRegistry
 } from '../../src/agent/index.js';
@@ -12,6 +13,7 @@ import { TMP_ROOT, sharedToolRegistry } from '../helpers/testEnvironment.js';
 
 export default async function runCommandExecutionTests() {
   await testCommandExecutorWithNone();
+  await testMediaAgentRejectsNoOpPlan();
   await testCommandExecutorExecutionPaths();
   await testToolRegistry();
   await testMediaAgentTaskError();
@@ -55,6 +57,50 @@ async function testCommandExecutorWithNone() {
   assert.equal(result.steps.length, 1);
   assert.equal(result.steps[0].status, 'skipped');
   assert.equal(result.steps[0].skipReason, 'no_op_command');
+}
+
+async function testMediaAgentRejectsNoOpPlan() {
+  const tmpDir = path.join(TMP_ROOT, 'executor-none-failure');
+  await fs.mkdir(tmpDir, { recursive: true });
+
+  const noopPlan = {
+    overview: '',
+    followUp: '',
+    steps: [
+      {
+        command: 'none',
+        arguments: [],
+        reasoning: 'No work to run.',
+        outputs: []
+      }
+    ]
+  };
+
+  const agent = new MediaAgent({
+    planner: {
+      async plan() {
+        return { plan: noopPlan, rawPlan: noopPlan, debug: { mocked: true } };
+      }
+    } as any,
+    executor: new CommandExecutor(),
+    toolRegistry: sharedToolRegistry
+  });
+
+  await assert.rejects(
+    agent.runTask(
+      {
+        task: 'Expect commands to run',
+        files: [],
+        outputDir: tmpDir
+      },
+      { publicRoot: tmpDir }
+    ),
+    (error: any) => {
+      assert.ok(error instanceof MediaAgentTaskError);
+      assert.equal(error.message, 'No executable commands were generated (plan only returned "none" steps).');
+      return true;
+    }
+  );
 }
 
 async function testCommandExecutorExecutionPaths() {

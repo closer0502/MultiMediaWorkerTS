@@ -81,16 +81,21 @@ export class MediaAgent {
 
     tracker.start('execute', { dryRun });
     let result;
+    let executeMeta;
     try {
       if (dryRun) {
         tracker.log('execute', 'Dry-run mode enabled; skipping command execution.');
       }
       result = await this.executor.execute(plan, { ...executionOptions, dryRun });
-      const executeMeta = {
+      const stepResults = Array.isArray(result.steps) ? result.steps : [];
+      const executedStepCount = stepResults.filter((step) => step && step.status === 'executed').length;
+      executeMeta = {
         exitCode: result.exitCode,
         timedOut: result.timedOut,
         dryRun: dryRun || result?.dryRun || false,
-        steps: result.steps.map((step) => ({
+        executedSteps: executedStepCount,
+        skippedSteps: Math.max(0, stepResults.length - executedStepCount),
+        steps: stepResults.map((step) => ({
           command: step.command,
           status: step.status,
           exitCode: step.exitCode,
@@ -98,11 +103,28 @@ export class MediaAgent {
           skipReason: step.skipReason ?? null
         }))
       };
+      const noCommandsExecuted = !dryRun && executedStepCount === 0;
+
+      if (noCommandsExecuted) {
+        const failureError = new Error('No executable commands were generated (plan only returned "none" steps).');
+        failureError.name = 'CommandExecutionError';
+        tracker.fail('execute', failureError, executeMeta);
+        throw new MediaAgentTaskError(failureError.message, tracker.getPhases(), {
+          cause: failureError,
+          context: {
+            plan,
+            rawPlan: rawPlan ?? plan,
+            debug: debugInfo,
+            result
+          }
+        });
+      }
+
       if (hasExecutionFailure(result)) {
         const failureError = new Error(describeExecutionFailure(result));
         failureError.name = 'CommandExecutionError';
         tracker.fail('execute', failureError, executeMeta);
-        throw new MediaAgentTaskError('Execution phase failed', tracker.getPhases(), {
+        throw new MediaAgentTaskError(failureError.message, tracker.getPhases(), {
           cause: failureError,
           context: {
             plan,
@@ -114,10 +136,13 @@ export class MediaAgent {
       }
       tracker.complete('execute', executeMeta);
     } catch (error) {
-      tracker.fail('execute', error);
-      throw new MediaAgentTaskError('Execution phase failed', tracker.getPhases(), {
+      if (error instanceof MediaAgentTaskError) {
+        throw error;
+      }
+      tracker.fail('execute', error, executeMeta || {});
+      throw new MediaAgentTaskError(error?.message || 'Execution phase failed', tracker.getPhases(), {
         cause: error,
-        context: { plan, rawPlan: rawPlan ?? plan, debug: debugInfo }
+        context: { plan, rawPlan: rawPlan ?? plan, debug: debugInfo, result }
       });
     }
 
