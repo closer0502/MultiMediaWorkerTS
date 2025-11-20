@@ -10,7 +10,12 @@ export type CommandResponse = {
 
 export function createOpenAIClient(apiKey?: string): OpenAI {
   return new OpenAI({
-    apiKey: apiKey || process.env.OPENAI_API_KEY
+    apiKey: apiKey || process.env.OPENAI_API_KEY || process.env.LM_STUDIO_API_KEY || 'lm-studio',
+    baseURL:
+      process.env.OPENAI_BASE_URL ||
+      process.env.LM_STUDIO_BASE_URL ||
+      process.env.LLM_BASE_URL ||
+      'http://localhost:1234/v1'
   });
 }
 
