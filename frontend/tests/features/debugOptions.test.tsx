@@ -77,4 +77,54 @@ describe('デバッグオプション', () => {
     expect(headerToggle).toBeChecked();
     expect(screen.getByLabelText(MESSAGES.taskForm.debugVerboseLabel)).toBeInTheDocument();
   });
+
+  it('失敗してもデバッグセチE��ンが表示される', async () => {
+    const failurePayload = {
+      status: 'failed',
+      sessionId: 'session-debug-failure',
+      task: 'fail task',
+      plan: { overview: '', followUp: '', steps: [] },
+      rawPlan: { overview: '', followUp: '', steps: [] },
+      result: {
+        exitCode: 1,
+        timedOut: false,
+        stdout: '',
+        stderr: 'error',
+        resolvedOutputs: [],
+        dryRun: false,
+        steps: []
+      },
+      phases: [],
+      uploadedFiles: [],
+      detail: 'failed',
+      debug: null,
+      responseText: 'llm-response'
+    };
+
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<any>>(() =>
+      Promise.resolve({
+        ok: false,
+        status: 422,
+        json: () => Promise.resolve(failurePayload)
+      })
+    );
+    vi.stubGlobal('fetch', mockFetch);
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const debugCheckbox = screen.getByLabelText(MESSAGES.taskForm.debugVerboseLabel);
+    await user.click(debugCheckbox);
+
+    const taskField = screen.getByLabelText(MESSAGES.taskForm.taskLabel);
+    await user.type(taskField, failurePayload.task);
+
+    await user.click(screen.getByRole('button', { name: MESSAGES.taskForm.submit }));
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+
+    expect(await screen.findByRole('heading', { name: MESSAGES.app.sections.latestResult })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: MESSAGES.result.debugHeading })).toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.debug.empty)).toBeInTheDocument();
+  });
 });

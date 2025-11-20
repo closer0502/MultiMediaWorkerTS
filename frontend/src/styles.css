@@ -897,6 +897,17 @@ video.output-preview-media {
   justify-content: space-between;
 }
 
+.process-command-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.process-command-row .command-line {
+  flex: 1 1 auto;
+}
+
 .log-block {
   background: rgba(var(--color-overlay-rgb), 0.8);
   border: 1px solid rgba(var(--color-border-muted-rgb), 0.2);

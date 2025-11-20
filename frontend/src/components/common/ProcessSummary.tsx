@@ -1,13 +1,53 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeSkipReason, formatStepCommand, formatStepStatus } from '../../utils/plan';
 import { MESSAGES } from '../../i18n/messages';
 
 export default function ProcessSummary({ result }) {
   const messages = MESSAGES.process;
+  const copyMessages = MESSAGES.plan;
   if (!result) {
     return <p>{messages.notExecuted}</p>;
   }
 
   const stepResults = Array.isArray(result.steps) ? result.steps : [];
+
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const copyTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopyClick = useCallback(
+    async (text, indexLabel) => {
+      if (!text) {
+        return;
+      }
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.clipboard ||
+        typeof navigator.clipboard.writeText !== 'function'
+      ) {
+        console.warn('Clipboard API is not available in this environment.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopiedIndex(indexLabel);
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 2000);
+      } catch (error) {
+        console.error('Failed to copy executed command to clipboard.', error);
+      }
+    },
+    []
+  );
 
   return (
     <div className="process-summary">
@@ -29,13 +69,27 @@ export default function ProcessSummary({ result }) {
           <ol className="process-step-list">
             {stepResults.map((step, index) => {
               const key = `${step.command || 'step'}-${index}`;
+              const commandText = formatStepCommand(step);
+              const isCopied = copiedIndex === index;
               return (
                 <li key={key} className="process-step-item">
                   <div className="process-row">
                     <span>{messages.stepLabel(index)}</span>
                     <span>{formatStepStatus(step)}</span>
                   </div>
-                  <code className="command-line small">{formatStepCommand(step)}</code>
+                  <div className="process-command-row">
+                    <code className="command-line small">{commandText}</code>
+                    {commandText && (
+                      <button
+                        type="button"
+                        className="copy-button"
+                        onClick={() => handleCopyClick(commandText, index)}
+                        aria-label={copyMessages.copyCommandAria(messages.stepLabel(index))}
+                      >
+                        {isCopied ? copyMessages.copyCommandCopied : copyMessages.copyCommand}
+                      </button>
+                    )}
+                  </div>
                   {step.reasoning && <p className="note">{step.reasoning}</p>}
                   {step.status === 'skipped' && (
                     <p className="note">
