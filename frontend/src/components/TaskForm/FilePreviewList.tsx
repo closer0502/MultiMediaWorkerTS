@@ -27,15 +27,6 @@ export default function FilePreviewList({ files, onClear, onAdd, disabled }) {
   }, [disabled, hasFiles, onClear]);
 
   useEffect(() => {
-    const canUseObjectURL =
-      typeof globalThis !== 'undefined' &&
-      typeof globalThis.URL !== 'undefined' &&
-      typeof globalThis.URL.createObjectURL === 'function';
-    const canRevoke =
-      typeof globalThis !== 'undefined' &&
-      typeof globalThis.URL !== 'undefined' &&
-      typeof globalThis.URL.revokeObjectURL === 'function';
-
     if (!files.length) {
       setPreviewItems([]);
       return undefined;
@@ -43,29 +34,18 @@ export default function FilePreviewList({ files, onClear, onAdd, disabled }) {
 
     const nextItems = files.map((file) => {
       const key = `${file.name}-${file.size}-${file.lastModified ?? ''}`;
-      const isImage = typeof file.type === 'string' ? file.type.startsWith('image/') : false;
-      const previewUrl = canUseObjectURL && isImage ? globalThis.URL.createObjectURL(file) : null;
       const extension = (extractFileExtension(file.name) || '').toUpperCase();
       return {
         key,
         file,
-        previewUrl,
+        previewUrl: null,
         fallbackLabel: extension || (file.type ? file.type.split('/')[0].toUpperCase() : 'FILE')
       };
     });
 
     setPreviewItems(nextItems);
 
-    return () => {
-      if (!canRevoke) {
-        return;
-      }
-      nextItems.forEach((item) => {
-        if (item.previewUrl) {
-          globalThis.URL.revokeObjectURL(item.previewUrl);
-        }
-      });
-    };
+    return undefined;
   }, [files]);
 
   return (
@@ -81,14 +61,10 @@ export default function FilePreviewList({ files, onClear, onAdd, disabled }) {
       </div>
       {hasFiles ? (
         <ul>
-          {previewItems.map(({ key, file, previewUrl, fallbackLabel }) => (
+          {previewItems.map(({ key, file, fallbackLabel }) => (
             <li key={key}>
               <div className="file-preview-thumb">
-                {previewUrl ? (
-                  <img src={previewUrl} alt={messages.previewAlt(file.name)} />
-                ) : (
-                  <span>{fallbackLabel}</span>
-                )}
+                <span>{fallbackLabel}</span>
               </div>
               <div className="file-preview-info">
                 <span className="file-preview-name" title={file.name}>

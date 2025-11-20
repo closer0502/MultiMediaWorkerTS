@@ -1,9 +1,8 @@
 import { STATUS_LABELS } from '../../constants/app';
-import { buildPlanSummary, normalizePlan } from '../../utils/plan';
+import { normalizePlan } from '../../utils/plan';
 import DebugDetails from '../common/DebugDetails';
 import OutputList from '../common/OutputList';
 import PhaseChecklist from '../common/PhaseChecklist';
-import PlanStepList from '../common/PlanStepList';
 import ProcessSummary from '../common/ProcessSummary';
 import UploadedFileList from '../common/UploadedFileList';
 import { MESSAGES } from '../../i18n/messages';
@@ -15,10 +14,11 @@ export default function ResultView({ entry }) {
   const statusClassName = `status-chip status-${status}`;
   const plan = normalizePlan(entry.plan ?? entry.rawPlan);
   const followUp = plan?.followUp || '';
-  const overview = plan?.overview || '';
-  const planSteps = plan?.steps || [];
   const stepResults = Array.isArray(entry?.result?.steps) ? entry.result.steps : [];
   const messages = MESSAGES.result;
+  const debugMessages = MESSAGES.debug;
+  const debugEnabled = Boolean(entry?.requestOptions?.debug);
+  const showDebugSection = debugEnabled || Boolean(entry?.debug);
 
   return (
     <div className="result-view">
@@ -40,19 +40,6 @@ export default function ResultView({ entry }) {
       <div className="result-section">
         <h3>{messages.phasesHeading}</h3>
         <PhaseChecklist phases={entry.phases} />
-      </div>
-
-      <div className="result-section">
-        <h3>{messages.planHeading}</h3>
-        {plan ? (
-          <>
-            <code className="command-line">{buildPlanSummary(plan)}</code>
-            {overview && <p className="note">{overview}</p>}
-            <PlanStepList steps={planSteps} results={stepResults} />
-          </>
-        ) : (
-          <p>{messages.planUnavailable}</p>
-        )}
       </div>
 
       {followUp && (
@@ -89,7 +76,7 @@ export default function ResultView({ entry }) {
 
       <div className="result-section">
         <h3>{messages.outputsHeading}</h3>
-        <OutputList outputs={outputList} showPreview={false} />
+        <OutputList outputs={outputList} />
       </div>
 
       <div className="result-section">
@@ -97,10 +84,10 @@ export default function ResultView({ entry }) {
         <ProcessSummary result={entry.result} />
       </div>
 
-      {entry.debug && (
+      {showDebugSection && (
         <div className="result-section">
           <h3>{messages.debugHeading}</h3>
-          <DebugDetails debug={entry.debug} />
+          {entry.debug ? <DebugDetails debug={entry.debug} /> : <p>{debugMessages.empty}</p>}
         </div>
       )}
     </div>
