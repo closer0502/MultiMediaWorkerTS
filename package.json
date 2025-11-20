@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "npm run dev:client",
     "dev:server": "tsx backend/src/server.ts",
+    "dev:server:lm": "tsx backend/src/server.local.ts",
     "dev:client": "vite --config frontend/vite.config.ts",
     "electron:dev": "cross-env ELECTRON_DEV=1 VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
     "dev:desktop": "concurrently -k \"npm:dev:client\" \"npm run electron:dev\"",

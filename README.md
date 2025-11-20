@@ -50,6 +50,7 @@ storage/                 # 一時ファイル (Git 管理外)
 ## 開発ワークフロー
 ### Web フロントエンド + バックエンド
 - バックエンド API: `npm run dev:server` -> http://localhost:3001
+- Local LLM backend (LM Studio API): `npm run dev:server:lm` -> http://localhost:3001 (set `LLM_BASE_URL` in `.env.local.lm` for LM Studio)
 - フロントエンド (Vite): `npm run dev:client` -> http://localhost:5173 (バックエンドへプロキシ)
 - 片方だけ起動する場合、追加の環境変数 (`VITE_DEV_SERVER_URL` など) は不要です。
 

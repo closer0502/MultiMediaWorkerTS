@@ -21,7 +21,8 @@ export function createDefaultMediaAgentServer(options: CreateMediaAgentServerOpt
   const clientDistRoot = options.clientDistRoot ?? path.join(rootDir, 'frontend', 'dist');
 
   const toolRegistry = ToolRegistry.createDefault();
-  const openAIClient = createOpenAIClient();
+  const llmBaseUrl = process.env.LLM_BASE_URL || process.env.OPENAI_BASE_URL;
+  const openAIClient = createOpenAIClient({ baseURL: llmBaseUrl });
   const agent = createMediaAgent(openAIClient, {
     toolRegistry,
     model: process.env.OPENAI_MODEL
@@ -37,4 +38,3 @@ export function createDefaultMediaAgentServer(options: CreateMediaAgentServerOpt
     clientDistRoot
   });
 }
-
