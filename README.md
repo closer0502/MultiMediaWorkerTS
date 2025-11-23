@@ -34,7 +34,7 @@ storage/                 # 一時ファイル (Git 管理外)
 
 ## 必須要件
 - Node.js 18 以上
-- PATH に登録済みの CLI: `ffmpeg`, `magick`, `exiftool`, `yt-dlp` など
+- PATH に登録済みの CLI: `ffmpeg`, `magick` (ImageMagick 7), `exiftool`, `yt-dlp` など
 - OpenAI API キー (`.env.local` に `OPENAI_API_KEY` を設定)
 
 ## セットアップ
@@ -46,6 +46,18 @@ storage/                 # 一時ファイル (Git 管理外)
    ```bash
    npm install
    ```
+3. Linux (Debian / Ubuntu 系) で CLI をまとめてインストールする場合:
+   ```bash
+   ./setup-debian.sh
+   ```
+   - `sudo apt install ffmpeg exiftool yt-dlp` をまとめて実行します。
+4. `magick` は ImageMagick 7 を https://imagemagick.org/script/download.php から取得し、PATH に配置してください。
+   - ダウンロードした `magick` が「ホームディレクトリ」か「ダウンロードフォルダ」にある場合の例:
+     ```bash
+     cd ~/Downloads
+     chmod +x magick
+     sudo mv magick /usr/local/bin/
+     ```
 
 ## 開発ワークフロー
 ### Web フロントエンド + バックエンド
