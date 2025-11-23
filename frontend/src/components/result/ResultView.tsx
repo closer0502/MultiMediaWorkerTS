@@ -1,5 +1,5 @@
 import { STATUS_LABELS } from '../../constants/app';
-import { normalizePlan } from '../../utils/plan';
+import { buildPlanSummary, normalizePlan } from '../../utils/plan';
 import DebugDetails from '../common/DebugDetails';
 import PhaseChecklist from '../common/PhaseChecklist';
 import ProcessSummary from '../common/ProcessSummary';
@@ -10,6 +10,7 @@ export default function ResultView({ entry }) {
   const statusLabel = STATUS_LABELS[status] || status || MESSAGES.formatters.unknownStatus;
   const statusClassName = `status-chip status-${status}`;
   const plan = normalizePlan(entry.plan ?? entry.rawPlan);
+  const planSummary = buildPlanSummary(entry.plan ?? entry.rawPlan);
   const followUp = plan?.followUp || '';
   const stepResults = Array.isArray(entry?.result?.steps) ? entry.result.steps : [];
   const messages = MESSAGES.result;
@@ -37,6 +38,15 @@ export default function ResultView({ entry }) {
       <div className="result-section">
         <h3>{messages.phasesHeading}</h3>
         <PhaseChecklist phases={entry.phases} />
+      </div>
+
+      <div className="result-section">
+        <h3>{messages.planHeading}</h3>
+        {planSummary ? (
+          <code className="command-line small">{planSummary}</code>
+        ) : (
+          <p className="note">{messages.planUnavailable}</p>
+        )}
       </div>
 
       {followUp && (
