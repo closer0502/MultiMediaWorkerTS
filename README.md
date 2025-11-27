@@ -65,11 +65,6 @@ storage/                 # 一時ファイル (Git 管理外)
 - フロントエンド (Vite): `npm run dev:client` -> http://localhost:5173 (バックエンドへプロキシ)
 - 片方だけ起動する場合、追加の環境変数 (`VITE_DEV_SERVER_URL` など) は不要です。
 
-### Electron (デスクトップ)
-- `npm run dev:desktop`: Vite 開発サーバーと Electron を同時起動 (ELECTRON_DEV=1)。
-- `npm run start:desktop`: `npm run build` 済みの成果物を使って Electron を疑似本番モードで起動 (ELECTRON_DEV=0)。
-- `npm run package:desktop`: `npm run build` 実行後に Electron Builder で各 OS 向けインストーラーを作成 (出力は `dist/`)。
-
 ## テストとビルド
 - すべてのテスト: `npm test`
   - バックエンドのみ: `npm run test:backend`
@@ -77,6 +72,12 @@ storage/                 # 一時ファイル (Git 管理外)
 - クライアント本番ビルド: `npm run build:client`
 - ビルド済みフロントエンドのプレビュー: `npm run preview:client`
 - バックエンド + フロントエンドの一括ビルド: `npm run build`
+
+### Electron (デスクトップ)
+- `npm run dev:desktop`: Vite 開発サーバーと Electron を同時起動 (ELECTRON_DEV=1)。
+- `npm run start:desktop`: `npm run build` 済みの成果物を使って Electron を疑似本番モードで起動 (ELECTRON_DEV=0)。
+- `npm run package:desktop`: `npm run build` 実行後に Electron Builder で各 OS 向けインストーラーを作成 (出力は `dist/`)。
+
 
 ## デバッグ / プレビュー用ユーティリティ
 ### 進捗モーダルを単体で起動できるプレビュー
