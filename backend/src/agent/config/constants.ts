@@ -28,4 +28,4 @@ export const DEFAULT_TOOL_DEFINITIONS: ToolDefinitionMap = {
   }
 };
 
-export const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-5-nano';
+export const DEFAULT_MODEL = 'gpt-5-nano';

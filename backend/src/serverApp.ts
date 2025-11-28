@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { createOpenAIClient, createMediaAgent, ToolRegistry } from './agent/index.js';
 import { MediaAgentServer } from './server/MediaAgentServer.js';
+import { loadLocalEnv, requireEnv, type LocalEnv } from './config/env.js';
 
 export type CreateMediaAgentServerOptions = {
   rootDir?: string;
@@ -10,6 +11,7 @@ export type CreateMediaAgentServerOptions = {
   storageRoot?: string;
   sessionInputRoot?: string;
   clientDistRoot?: string;
+  env?: LocalEnv;
 };
 
 export function createDefaultMediaAgentServer(options: CreateMediaAgentServerOptions = {}) {
@@ -19,12 +21,14 @@ export function createDefaultMediaAgentServer(options: CreateMediaAgentServerOpt
   const storageRoot = options.storageRoot ?? path.join(rootDir, 'storage');
   const sessionInputRoot = options.sessionInputRoot ?? path.join(storageRoot, 'inputs');
   const clientDistRoot = options.clientDistRoot ?? path.join(rootDir, 'frontend', 'dist');
+  const env = options.env ?? loadLocalEnv(rootDir);
+  const openAIKey = requireEnv(env, 'OPENAI_API_KEY');
 
   const toolRegistry = ToolRegistry.createDefault();
-  const openAIClient = createOpenAIClient();
+  const openAIClient = createOpenAIClient(openAIKey);
   const agent = createMediaAgent(openAIClient, {
     toolRegistry,
-    model: process.env.OPENAI_MODEL
+    model: env.OPENAI_MODEL
   });
 
   return new MediaAgentServer({

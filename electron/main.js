@@ -9,11 +9,41 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-dotenv.config({ path: path.join(projectRoot, '.env.local') });
+// Only read app configuration from .env.local to avoid picking up OS-level env vars unexpectedly.
+const envPath = path.join(projectRoot, '.env.local');
+const localEnv = fs.existsSync(envPath) ? dotenv.parse(fs.readFileSync(envPath)) : {};
 
-const rendererDevUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-const backendPort = Number(process.env.MEDIA_AGENT_PORT || process.env.PORT || 3001);
-const devFlag = process.env.ELECTRON_DEV;
+function requireLocalEnv(key) {
+  const value = localEnv[key];
+  if (!value) {
+    throw new Error(`.env.local is missing required key: ${key}`);
+  }
+  return value;
+}
+
+function createBackendEnv(overrides = {}) {
+  const systemEssentials = {
+    PATH: process.env.PATH,
+    SystemRoot: process.env.SystemRoot,
+    WINDIR: process.env.WINDIR,
+    HOME: process.env.HOME,
+    USERPROFILE: process.env.USERPROFILE,
+    TMP: process.env.TMP,
+    TEMP: process.env.TEMP
+  };
+  const merged = { ...systemEssentials, ...localEnv, ...overrides };
+  return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined));
+}
+
+// Ensure we fail fast when required keys are missing rather than silently reading OS env vars.
+requireLocalEnv('OPENAI_API_KEY');
+
+const rendererDevUrl = localEnv.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+const configuredBackendPort = localEnv.MEDIA_AGENT_PORT ?? localEnv.PORT;
+const backendPort = Number.isFinite(Number(configuredBackendPort))
+  ? Number(configuredBackendPort)
+  : 3001;
+const devFlag = localEnv.ELECTRON_DEV;
 const isDev = devFlag === '1' || (!app.isPackaged && devFlag !== '0');
 
 let mainWindow;
@@ -108,7 +138,7 @@ async function startBackendServer() {
   }
 
   if (isDev) {
-    const env = { ...process.env, PORT: String(backendPort) };
+    const env = createBackendEnv({ PORT: String(backendPort) });
     const tsxCli = resolveTsxCli();
     const serverEntry = path.join(projectRoot, 'backend', 'src', 'server.ts');
     const nodeBinary = resolveNodeBinary();
@@ -152,6 +182,7 @@ async function startBackendServer() {
 
   embeddedServer = factory({
     rootDir: projectRoot,
+    env: localEnv,
     publicRoot,
     generatedRoot: path.join(publicRoot, 'generated'),
     storageRoot,

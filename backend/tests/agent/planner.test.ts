@@ -63,9 +63,8 @@ async function testCreateOpenAIClient() {
   const explicit = createOpenAIClient('test-key', StubOpenAI as unknown as typeof OpenAI) as any;
   assert.equal(explicit.options.apiKey, 'test-key');
 
-  const original = process.env.OPENAI_API_KEY;
-  process.env.OPENAI_API_KEY = 'env-key';
-  const implicit = createOpenAIClient(undefined, StubOpenAI as unknown as typeof OpenAI) as any;
-  assert.equal(implicit.options.apiKey, 'env-key');
-  process.env.OPENAI_API_KEY = original;
+  assert.throws(
+    () => createOpenAIClient('', StubOpenAI as unknown as typeof OpenAI),
+    /OPENAI_API_KEY is required/
+  );
 }

@@ -1,16 +1,15 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import dotenv from 'dotenv';
 
 import { createDefaultMediaAgentServer } from './serverApp.js';
+import { loadLocalEnv } from './config/env.js';
 
 const ROOT_DIR = process.cwd();
-dotenv.config({ path: path.join(ROOT_DIR, '.env.local') });
-
-const PORT = Number(process.env.PORT || 3001);
+const LOCAL_ENV = loadLocalEnv(ROOT_DIR);
+const PORT = Number(LOCAL_ENV.PORT ?? 3001);
 
 async function startServer() {
-  const server = createDefaultMediaAgentServer({ rootDir: ROOT_DIR });
+  const server = createDefaultMediaAgentServer({ rootDir: ROOT_DIR, env: LOCAL_ENV });
   await server.start(PORT);
   return server;
 }
