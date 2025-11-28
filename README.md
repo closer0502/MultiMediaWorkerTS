@@ -75,6 +75,7 @@ storage/                 # 一時ファイル (Git 管理外)
 
 ### Electron (デスクトップ)
 - `npm run dev:desktop`: Vite 開発サーバーと Electron を同時起動 (ELECTRON_DEV=1)。
+- `npm run dev:desktop-without-devtools`: DevTools を開かずに、表示のみを行う開発モードで起動します。
 - `npm run start:desktop`: `npm run build` 済みの成果物を使って Electron を疑似本番モードで起動 (ELECTRON_DEV=0)。
 - `npm run package:desktop`: `npm run build` 実行後に Electron Builder で各 OS 向けインストーラーを作成 (出力は `dist/`)。
 
@@ -132,3 +133,4 @@ storage/                 # 一時ファイル (Git 管理外)
 1. `backend/src/agent/constants.ts` の `DEFAULT_TOOL_DEFINITIONS` にツール定義を追加。
 2. 追加する CLI をローカルにインストールし、PATH から実行できるようにする。
 3. 特別な UI や検証が必要な場合のみフロントエンドを修正 (多くはバックエンド側の定義追加だけで対応可能)。
+

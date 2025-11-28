@@ -45,6 +45,8 @@ const backendPort = Number.isFinite(Number(configuredBackendPort))
   : 3001;
 const devFlag = localEnv.ELECTRON_DEV;
 const isDev = devFlag === '1' || (!app.isPackaged && devFlag !== '0');
+const disableDevTools = process.argv.includes('--no-devtools');
+const shouldOpenDevTools = isDev && !disableDevTools;
 
 let mainWindow;
 let backendProcess = null;
@@ -233,7 +235,10 @@ async function createMainWindow() {
   if (isDev) {
     await waitForEndpoint(rendererDevUrl, 'フロントエンド');
     await mainWindow.loadURL(rendererDevUrl);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    if (shouldOpenDevTools) {
+      // Allow launching dev build without automatically opening DevTools via --no-devtools flag.
+      mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
   } else {
     const startUrl = `http://localhost:${backendPort}`;
     await mainWindow.loadURL(startUrl);
